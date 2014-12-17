@@ -55,8 +55,9 @@ router.get('/', function(req, res) {
         redirectAuthUrl(req, res);
     } else {
         getAccessToken(res, code, getMyInfo, function (user) {
-            req.session.user = user;
-            res.redirect('/');
+            memcached.set('user', user, 86400, function (err) {
+                res.redirect('/');
+            });
         });
     }
 });
