@@ -3,9 +3,7 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
-// var Redis = require('redis');
 
-// redis = Redis.createClient();
 MEMCACHED_HOST = '127.0.0.1:11211';
 
 var app = express();
@@ -24,7 +22,7 @@ app.use('/', require('./routes/index'));
 app.use('/user', require('./routes/user'));
 app.use('/auth', require('./routes/auth'));
 app.use('/oauth', require('./routes/oauth'));
-// app.use('/redis', require('./routes/redis'));
+app.use('/redis', require('./routes/redis'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

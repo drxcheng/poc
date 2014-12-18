@@ -13,3 +13,10 @@ block content
         li GET users
             form(name="logout", action="/user", method="GET")
                 input(type="submit", value="submit")
+        li GET redis
+            form(name="list-item", action="/redis", method="GET")
+                input(type="submit", value="list")
+        li POST redis
+            form(name="add-item", action="/redis", method="POST")
+                input(type="text", name="item")
+                input(type="submit", value="add")
