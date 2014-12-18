@@ -1,65 +1,57 @@
+var express = require('express');
+var app = express();
+var Memcached = require('memcached');
+var memcached = new Memcached(MEMCACHED_HOST);
+
 var config = require('../config.json');
 var google = require('../node_modules/googleapis/lib/googleapis.js');
 var OAuth2Client = google.auth.OAuth2;
 var plus = google.plus('v1');
-var plusScope = [
-    'https://www.googleapis.com/auth/userinfo.email'
-];
 
+var LIFETIME = 86400;
 var oauth2Client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUrl);
 
-var redirectAuthUrl = function (req, res) {
-    var url = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: plusScope
-    });
-
-    res.writeHead(302, {
-        Location: url
-    });
-
-    res.end();
-}
-
-var getAccessToken = function (res, code, callback, redirect) {
+var getAccessToken = function (res, code) {
     oauth2Client.getToken(code, function (err, tokens) {
         if (!err) {
             oauth2Client.setCredentials(tokens);
-            callback(res, redirect);
+            getMyInfo(res);
         } else {
             res.status(500).send(err);
         }
     });
 }
 
-var getMyInfo = function (res, callback) {
+var getMyInfo = function (res) {
     plus.people.get({
         userId: 'me',
         auth: oauth2Client
     }, function(err, people) {
         if (!err) {
-            callback(people);
+            saveSession(res, people);
         } else {
             res.status(500).send(err);
         }
     });
 }
 
-var express = require('express');
-var router = express.Router();
+var saveSession = function (res, user) {
+    memcached.set('user', user, LIFETIME, function (err) {
+        res.redirect('/');
+    });
+}
 
-router.get('/', function(req, res) {
+app.get('/', function(req, res) {
     var code = req.query.code;
+    var err = req.query.error;
 
-    if (!code) {
-        redirectAuthUrl(req, res);
+    if (err) {
+        res.send(err);
+    } else if (code) {
+        getAccessToken(res, code);
     } else {
-        getAccessToken(res, code, getMyInfo, function (user) {
-            memcached.set('user', user, 86400, function (err) {
-                res.redirect('/');
-            });
-        });
+        res.status(500).send(req.query);
     }
 });
 
-module.exports = router;
+module.exports = app;

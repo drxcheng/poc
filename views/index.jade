@@ -1,6 +1,15 @@
 extends layout
 
 block content
-    h1 Authentication Proof of Concept
-        p
-        a(href='/oauth') login
+    if name === undefined
+        form(name="login", action="/auth", method="POST")
+            input(type="submit", name="action", value="login")
+    else
+        h1 Welcome, #{name}
+        form(name="logout", action="/auth", method="POST")
+            input(type="submit", name="action", value="logout")
+    h2 Endpoints
+    ul
+        li GET users
+            form(name="logout", action="/user", method="GET")
+                input(type="submit", value="submit")
