@@ -8,15 +8,33 @@ block content
         h1 Welcome, #{name}
         form(name="logout", action="/auth", method="POST")
             input(type="submit", name="action", value="logout")
-    h2 Play Redis
+
+    h2 Play Memcached
     ul
-        li GET users
+        li GET user
             form(name="logout", action="/user", method="GET")
                 input(type="submit", value="submit")
+
+    h2 Play Redis
+    ul
         li GET redis
             form(name="list-item", action="/redis", method="GET")
                 input(type="submit", value="list")
         li POST redis
             form(name="add-item", action="/redis", method="POST")
                 input(type="text", name="item")
+                input(type="submit", value="add")
+
+    h2 Play Backend
+    ul
+        li GET items
+            form(name="list-item", action="/item", method="GET")
+                input(type="submit", value="list")
+        li GET item
+            form(name="get-item", action="/item", method="GET")
+                input(type="text", name="id")
+                input(type="submit", value="submit")
+        li POST item
+            form(name="add-item", action="/item", method="POST")
+                input(type="text", name="value")
                 input(type="submit", value="add")

@@ -10,7 +10,7 @@ var getKey = function (callback) {
     memcached.get('user', function (err, data) {
         var key = '-items';
         if (data) {
-            key = data.id + key;
+            key = data.id + '-' + data.googleId + key;
         }
 
         callback(key);
