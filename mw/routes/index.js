@@ -7,7 +7,7 @@ app.get('/', function(req, res) {
     memcached.get('user', function (err, data) {
         var name = undefined;
         if (data) {
-            name = data.displayName;
+            name = data.name;
         }
 
         res.render('index', {name: name});

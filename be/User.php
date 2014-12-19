@@ -4,7 +4,7 @@ require_once 'Database.php';
 
 class User extends Database
 {
-    public function getUser($id)
+    public function getUserById($id)
     {
         $query = "
             SELECT *
@@ -28,6 +28,37 @@ class User extends Database
             $user = [
                 'id'       => $id,
                 'googleId' => $row['google_id'],
+                'name'     => $row['name']
+            ];
+        }
+
+        return $user;
+    }
+
+    public function getUserByGoogleId($id)
+    {
+        $query = "
+            SELECT *
+            FROM `user`
+            WHERE `google_id` = :id
+        ";
+        $bind = [
+            'id' => $id
+        ];
+        $stmt = $this->db->prepare($query);
+        if (!$stmt->execute($bind)) {
+            $error = $stmt->errorInfo();
+            throw new \PDOException($error[2]);
+        }
+
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (empty($row)) {
+            $user = null;
+        } else {
+            $user = [
+                'id'       => (int) $row['id'],
+                'googleId' => $id,
                 'name'     => $row['name']
             ];
         }

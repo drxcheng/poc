@@ -9,7 +9,15 @@ if (isset($_REQUEST['resource']) && $_REQUEST['resource'] === 'user') {
     $userDA = new User($config);
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_REQUEST['id'])) {
-        $user = $userDA->getUser($_REQUEST['id']);
+        $user = $userDA->getUserById($_REQUEST['id']);
+
+        if ($user === null) {
+            header('HTTP/1.0 404');
+        } else {
+            echo json_encode($user);
+        }
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_REQUEST['googleId'])) {
+        $user = $userDA->getUserByGoogleId($_REQUEST['googleId']);
 
         if ($user === null) {
             header('HTTP/1.0 404');
