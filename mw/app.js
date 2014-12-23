@@ -24,6 +24,7 @@ app.use('/oauth', require('./routes/oauth'));
 app.use('/user', require('./routes/user'));
 app.use('/redis', require('./routes/redis'));
 app.use('/item', require('./routes/item'));
+app.use('/chipmunk', require('./routes/chipmunk'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

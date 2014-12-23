@@ -32,7 +32,7 @@ app.post('/', function(req, res) {
     }
 
     getKey(function (key) {
-        redis.lpush(key, item, function (err) {
+        redis.rpush(key, item, function (err) {
             if (err) {
                 console.log(err);
                 res.status(500).send(err);
