@@ -1,31 +1,24 @@
 var express = require('express');
 var app = express();
-var chipmunk = require('../../chipmunkjs/lib/index');
+var chipmunk = require('../lib/chipmunk');
 
-var QUEUE_NAME = 'chipmunkjs-queue';
+var REDIS_QUEUE_NAME_READ  = 'chipmunkjs-queue-read';
+var REDIS_QUEUE_NAME_WRITE = 'chipmunkjs-queue-write';
+var COMMAND = 'GET user';
 
 app.get('/', function(req, res) {
-    chipmunk.read(QUEUE_NAME, function (err, item) {
+    chipmunk.write(REDIS_QUEUE_NAME_WRITE, COMMAND, function (err) {
+        if (err) {
+            console.err(err);
+            res.status(500).send(err);
+        }
+    });
+
+    chipmunk.read(REDIS_QUEUE_NAME_READ, function (err, item) {
         if (err) {
             console.err(err);
         } else {
             res.send(JSON.stringify(item));
-        }
-    });
-});
-
-app.post('/', function(req, res) {
-    var item = req.body.item;
-    if (!item) {
-        return;
-    }
-
-    chipmunk.write(QUEUE_NAME, item, function (err) {
-        if (err) {
-            console.err(err);
-            res.status(500).send(err);
-        } else {
-            res.send(req.body);
         }
     });
 });

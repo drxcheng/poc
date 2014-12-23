@@ -41,10 +41,6 @@ block content
 
     h2 Play ChipmunkJS
     ul
-        li Read queue item
-            form(name="list-item", action="/chipmunk", method="GET")
-                input(type="submit", value="read")
-        li Write queue item
-            form(name="add-item", action="/chipmunk", method="POST")
-                input(type="text", name="item")
-                input(type="submit", value="write")
+        li Call BE
+            form(name="call", action="/chipmunk", method="GET")
+                input(type="submit", value="call")
