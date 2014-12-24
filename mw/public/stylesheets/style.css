@@ -8,14 +8,14 @@ a {
 }
 
 ul li {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
-form input[type=submit] {
-    padding: 3px 15px;
-    margin: 5px;
-    font-size: 15px;
-    cursor: pointer;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
+button, form input[type=submit] {
+  padding: 3px 15px;
+  margin: 5px;
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
 }

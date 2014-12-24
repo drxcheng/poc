@@ -41,6 +41,9 @@ block content
 
     h2 Play ChipmunkJS
     ul
-        li Call BE
-            form(name="call", action="/chipmunk", method="GET")
-                input(type="submit", value="call")
+        li Call BE - get user
+            button#bt-user(onclick='getUser()') submit
+            pre#pre-user
+        li Call BE - get item
+            button#bt-item(onclick='getItem()') submit
+            pre#pre-item
