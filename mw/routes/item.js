@@ -1,17 +1,8 @@
 var express = require('express');
 var app = express();
 var http = require('http');
-var Memcached = require('memcached');
 
 var config = require('../config.json');
-
-var memcached = new Memcached(MEMCACHED_HOST);
-
-var getUserId = function (callback) {
-    memcached.get('user', function (err, data) {
-        callback(data.id);
-    });
-};
 
 var getItem = function (id, userId, resParent) {
     var path = '';
@@ -49,40 +40,38 @@ app.get('/', function(req, res) {
     if (req.query.id) {
         getItem(req.query.id, null, res);
     } else {
-        getUserId(function (userId) {
-            getItem(null, userId, res);
-        });
+        var userId = req.session.user.id;
+        getItem(null, userId, res);
     }
 });
 
 app.post('/', function(req, resParent) {
     var item = req.body;
-    getUserId(function (userId) {
-        item.userId = userId;
-        var body = JSON.stringify(item);
+    var userId = req.session.user.id;
+    item.userId = userId;
+    var body = JSON.stringify(item);
 
-        var options = {
-            host: config.backend,
-            port: 80,
-            path: '?resource=item',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': body.length
-            }
-        };
+    var options = {
+        host: config.backend,
+        port: 80,
+        path: '?resource=item',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': body.length
+        }
+    };
 
-        var req = http.request(options, function(res) {
-            res.setEncoding('utf8');
-            res.on('data', function (chunk) {
-                console.log('Response: ' + chunk);
-                resParent.send(chunk);
-            });
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('Response: ' + chunk);
+            resParent.send(chunk);
         });
-
-        req.write(body);
-        req.end();
     });
+
+    req.write(body);
+    req.end();
 });
 
 module.exports = app;

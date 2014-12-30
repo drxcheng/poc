@@ -1,5 +1,4 @@
 var http = require('http');
-var Memcached = require('memcached');
 
 var config = require('../config.json');
 var google = require('../node_modules/googleapis/lib/googleapis.js');
@@ -11,7 +10,6 @@ var PLUS_SCOPE = [
 ];
 
 var OAuth2Client = google.auth.OAuth2;
-var memcached = new Memcached(MEMCACHED_HOST);
 var oauth2Client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUrl);
 
 var redirectAuthUrl = function (res) {
@@ -36,12 +34,9 @@ var getAccessToken = function (req, res, code) {
 var syncUserInfo = function (req, res, people) {
     getUserFromDb(people, function (user) {
         if (user) {
-            memcached.set('user', user, LIFETIME, function (err) {
-                res.redirect('/');
-            });
-        } else {
-            res.redirect('/');
+            req.session.user = user;
         }
+        res.redirect('/');
     });
 };
 
@@ -70,6 +65,7 @@ var getUserFromDb = function (people, callback) {
                 break;
             case 404:
                 addUserToDb(user, function (user) {
+                    console.log('ADD user: ' + user);
                     callback(user);
                 });
                 break;

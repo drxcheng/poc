@@ -49,6 +49,7 @@ function getResponse($method, $resource, $arguments)
     if ($method === null || $resource === null) {
         $response = '400';
     } elseif ($method === 'GET' && $resource === 'user') {
+        sleep(3);
         $params = [
             'resource' => 'user',
             'id' => $arguments[0]

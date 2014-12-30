@@ -1,17 +1,15 @@
 var express = require('express');
 var app = express();
-var Memcached = require('memcached');
-var memcached = new Memcached(MEMCACHED_HOST);
 
 app.get('/', function(req, res) {
-    memcached.get('user', function (err, data) {
-        var name = undefined;
-        if (data) {
-            name = data.name;
-        }
+    var user = req.session.user;
+    var name = undefined;
 
-        res.render('index', {name: name});
-    });
+    if (user !== undefined) {
+        name = user.name;
+    }
+
+    res.render('index', {name: name});
 });
 
 module.exports = app;
