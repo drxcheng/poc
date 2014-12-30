@@ -2,49 +2,41 @@
 
 require_once('config.php');
 
-const REDIS_QUEUE_NAME_MW_TO_BE  = 'chipmunkjs-queue-mw-to-be';
-const REDIS_QUEUE_NAME_BE_TO_MW = 'chipmunkjs-queue-be-to-mw';
+const REDIS_QUEUE_NAME_LISTEN  = 'poc-mw-to-be';
 
 $redis = new Redis();
 
 $redis->connect('127.0.0.1', 6379);
 
 do {
-    $command = $redis->blpop(REDIS_QUEUE_NAME_MW_TO_BE, 0);
+    $command = $redis->blpop(REDIS_QUEUE_NAME_LISTEN, 0);
     echo "REQ: " . $command[1] . "\n";
+    list($method, $resource, $data, $responseQueue) = extractCommand($command[1]);
+    $response = getResponse($method, $resource, $data);
 
-    list($method, $resource, $arguments) = extractCommand($command[1]);
-    $response = getResponse($method, $resource, $arguments);
-
-    $redis->rpush(REDIS_QUEUE_NAME_BE_TO_MW, $response);
+    $redis->rpush($responseQueue, $response);
     echo "RES: \n";
 } while (true);
 
 function extractCommand($commandline)
 {
-    $commandArray = explode(' ', $commandline);
-    if (count($commandArray) < 2) {
+    $command = json_decode($commandline, true);
+    if (empty($command)
+        || !isset($command['method'])
+        || !isset($command['resource'])
+        || !isset($command['response'])) {
         return null;
     }
 
-    $method = $commandArray[0];
-    $resource = $commandArray[1];
-    $arguments = [];
-
-    $i = 2;
-    while ($i < count($commandArray)) {
-        $arguments[] = $commandArray[$i];
-        ++$i;
-    }
-
     return [
-        $method,
-        $resource,
-        $arguments
+        $command['method'],
+        $command['resource'],
+        $command['data'],
+        $command['response']
     ];
 }
 
-function getResponse($method, $resource, $arguments)
+function getResponse($method, $resource, $data)
 {
     if ($method === null || $resource === null) {
         $response = '400';
@@ -52,14 +44,14 @@ function getResponse($method, $resource, $arguments)
         sleep(3);
         $params = [
             'resource' => 'user',
-            'id' => $arguments[0]
+            'id' => $data
         ];
         $response = callGetBE('', $params);
     } elseif ($method === 'GET' && $resource === 'item') {
         sleep(5);
         $params = [
             'resource' => 'item',
-            'userId' => $arguments[0]
+            'userId' => $data
         ];
         $response = callGetBE('', $params);
     } else {

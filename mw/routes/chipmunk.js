@@ -2,8 +2,7 @@ var express = require('express');
 var app = express();
 var chipmunk = require('../lib/chipmunk');
 
-var REDIS_QUEUE_NAME_MW_TO_BE  = 'chipmunkjs-queue-mw-to-be';
-var REDIS_QUEUE_NAME_BE_TO_MW = 'chipmunkjs-queue-be-to-mw';
+var REDIS_QUEUE_NAME_SEND  = 'poc-mw-to-be';
 
 app.get('/', function(req, res) {
     var resource = req.query.resource;
@@ -13,16 +12,27 @@ app.get('/', function(req, res) {
         res.status(401).send();
     }
 
-    var command = 'GET ' + resource + ' ' + user.id;
+    /**
+     * response queue name format: chipmunk-userId-method-resource-timestamp
+     */
+    var queueToListen = 'poc-' + user.id + '-get-' + resource + '-' + Date.now();
+    var command = JSON.stringify({
+        method: 'GET',
+        resource: resource,
+        data: user.id,
+        response: queueToListen
+    });
 
-    chipmunk.write(REDIS_QUEUE_NAME_MW_TO_BE, command, function (err) {
+    console.log(command);
+
+    chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
         if (err) {
             console.err(err);
             res.status(500).send(err);
         }
     });
 
-    chipmunk.read(REDIS_QUEUE_NAME_BE_TO_MW, function (err, item) {
+    chipmunk.read(queueToListen, 0, function (err, item) {
         if (err) {
             console.err(err);
         } else {
