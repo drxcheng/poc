@@ -1,4 +1,5 @@
-var redis = require('redis').createClient();
+var config = require('../config.json');
+var redis = require('redis').createClient(6379, config.redisHost);
 
 module.exports = {
     read: function(queueName, timeout, callback) {

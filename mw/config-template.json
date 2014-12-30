@@ -2,5 +2,7 @@
     "clientId" : "",
     "clientSecret" : "",
     "redirectUrl" : "",
-    "backend" : "poc-be.local"
+    "backend" : "poc-be.local",
+    "redisHost" : "10.30.50.115",
+    "memcachedHost" : "10.30.50.105"
 }

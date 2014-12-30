@@ -23,8 +23,6 @@ app.get('/', function(req, res) {
         response: queueToListen
     });
 
-    console.log(command);
-
     chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
         if (err) {
             console.err(err);

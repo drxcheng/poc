@@ -1,8 +1,8 @@
 var express = require('express');
 var app = express();
-var Redis = require('redis');
+var config = require('../config.json');
 
-var redis = Redis.createClient();
+var redis = require('redis').createClient(6379, config.redisHost);
 
 var getKey = function (req, callback) {
     var userId = req.session.user.id;

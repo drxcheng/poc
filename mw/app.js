@@ -1,3 +1,4 @@
+var config = require('./config');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -24,7 +25,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     store: new MemcachedStore({
-        hosts: '127.0.0.1:11211'
+        hosts: config.memcachedHost + ':11211'
     })
 }));
 
