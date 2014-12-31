@@ -6,20 +6,26 @@ var REDIS_QUEUE_NAME_SEND  = 'poc-mw-to-be';
 
 app.get('/', function(req, res) {
     var resource = req.query.resource;
-    var user = req.session.user;
+    var userId = req.query.id
 
-    if (!user) {
-        res.status(401).send();
+    if (!userId) {
+        var user = req.session.user;
+
+        if (!user) {
+            res.status(401).send();
+        }
+
+        userId = user.id;
     }
 
     /**
      * response queue name format: chipmunk-userId-method-resource-timestamp
      */
-    var queueToListen = 'poc-' + user.id + '-get-' + resource + '-' + Date.now();
+    var queueToListen = 'poc-' + userId + '-get-' + resource + '-' + Date.now();
     var command = JSON.stringify({
         method: 'GET',
         resource: resource,
-        data: user.id,
+        data: userId,
         response: queueToListen
     });
 
@@ -30,7 +36,7 @@ app.get('/', function(req, res) {
         }
     });
 
-    chipmunk.read(queueToListen, 0, function (err, item) {
+    chipmunk.read(queueToListen, 10, function (err, item) {
         if (err) {
             console.err(err);
         } else {
