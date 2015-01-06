@@ -1,12 +1,12 @@
-var config = require('./config');
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
+var express        = require('express');
+var path           = require('path');
+var favicon        = require('serve-favicon');
+var logger         = require('morgan');
+var bodyParser     = require('body-parser');
+var cookieParser   = require('cookie-parser');
+var session        = require('express-session');
 var MemcachedStore = require('connect-memcached')(session);
+var config         = require('./config');
 
 var app = express();
 
@@ -21,27 +21,24 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(session({
-    secret: 'ThisIsASecret',
-    resave: false,
-    saveUninitialized: true,
-    store: new MemcachedStore({
-        hosts: config.memcachedHost + ':11211'
-    })
+  secret: 'ThisIsASecret',
+  resave: false,
+  saveUninitialized: true,
+  store: new MemcachedStore({
+    hosts: config.memcachedHost + ':11211'
+  })
 }));
 
 app.use('/', require('./routes/index'));
 app.use('/auth', require('./routes/auth'));
 app.use('/oauth', require('./routes/oauth'));
-app.use('/user', require('./routes/user'));
-app.use('/redis', require('./routes/redis'));
-app.use('/item', require('./routes/item'));
 app.use('/chipmunk', require('./routes/chipmunk'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
 // error handlers
@@ -49,23 +46,23 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
     });
+  });
 }
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
+  });
 });
 
 module.exports = app;

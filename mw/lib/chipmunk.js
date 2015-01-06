@@ -1,16 +1,32 @@
-var config = require('../config.json');
-var redis = require('redis').createClient(6379, config.redisHost);
+// Chipmunk Library
+// Provide method for write and read
+// This will be part of the middleware
 
-module.exports = {
-    read: function(queueName, timeout, callback) {
-        redis.blpop(queueName, timeout, function (err, response) {
-            callback(err, response);
-        });
-    },
+function Chipmunk(host) {
+  this.redis = require('redis').createClient(6379, host);
+}
 
-    write: function(queueName, request, callback) {
-        redis.rpush(queueName, request, function (err) {
-            callback(err);
-        });
-    }
+Chipmunk.prototype.generateCommand = function (method, resource, data, queueToListen) {
+  var command = JSON.stringify({
+    method: method,
+    resource: resource,
+    data: data,
+    response: queueToListen
+  });
+
+  return command;
 };
+
+Chipmunk.prototype.write = function (queueName, message, callback) {
+  this.redis.rpush(queueName, message, function (err) {
+    callback(err);
+  });
+};
+
+Chipmunk.prototype.read = function (queueName, timeout, callback) {
+  this.redis.blpop(queueName, timeout, function (err, response) {
+    callback(err, response);
+  });
+};
+
+module.exports = Chipmunk;

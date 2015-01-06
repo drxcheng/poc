@@ -1,48 +1,67 @@
-var express = require('express');
-var app = express();
-var chipmunk = require('../lib/chipmunk');
+var express  = require('express');
+var debug    = require('debug')('poc');
+var config   = require('../config.json');
+var Chipmunk = require('../lib/chipmunk');
 
-var REDIS_QUEUE_NAME_SEND  = 'poc-mw-to-be';
+var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
+var TIMEOUT = 10;
+
+var app      = express();
+var chipmunk = new Chipmunk(config.redisHost);
+
+var getUserId = function (req, res) {
+  var userId = req.query.id;
+
+  if (!userId) {
+    var user = req.session.user;
+
+    if (user) {
+      userId = user.id;
+    }
+  }
+
+  return userId;
+};
+
+var chipmunkWrite = function (res, command) {
+  chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).end();
+    } else {
+      debug('sent ' + command + ' to ' + REDIS_QUEUE_NAME_SEND);
+    }
+  });
+};
+
+var chipmunkRead = function (res, queueName) {
+  chipmunk.read(queueName, TIMEOUT, function (err, response) {
+    if (err) {
+      console.error(err);
+      res.status(500).end();
+    } else {
+      debug('receive ' + response + ' from ' + queueName);
+      res.send(JSON.stringify(response));
+    }
+  });
+};
 
 app.get('/', function(req, res) {
-    var resource = req.query.resource;
-    var userId = req.query.id
+  var userId = getUserId(req, res);
+  if (!userId) {
+    console.error('unauthorized');
+    res.status(401).end();
+    return;
+  }
 
-    if (!userId) {
-        var user = req.session.user;
+  var resource      = req.query.resource;
+  var queueToListen = 'poc-' + userId + '-get-' + resource + '-' + Date.now();
+  var command       = chipmunk.generateCommand('GET', resource, userId, queueToListen);
 
-        if (!user) {
-            res.status(401).send();
-        }
+  debug(command);
 
-        userId = user.id;
-    }
-
-    /**
-     * response queue name format: chipmunk-userId-method-resource-timestamp
-     */
-    var queueToListen = 'poc-' + userId + '-get-' + resource + '-' + Date.now();
-    var command = JSON.stringify({
-        method: 'GET',
-        resource: resource,
-        data: userId,
-        response: queueToListen
-    });
-
-    chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
-        if (err) {
-            console.err(err);
-            res.status(500).send(err);
-        }
-    });
-
-    chipmunk.read(queueToListen, 10, function (err, item) {
-        if (err) {
-            console.err(err);
-        } else {
-            res.send(JSON.stringify(item));
-        }
-    });
+  chipmunkWrite(res, command);
+  chipmunkRead(res, queueToListen);
 });
 
 module.exports = app;

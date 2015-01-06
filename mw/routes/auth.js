@@ -1,18 +1,26 @@
-var express = require('express');
+var express        = require('express');
+var debug          = require('debug')('poc');
+var config         = require('../config.json');
+var Authentication = require('../lib/authentication');
+
 var app = express();
 
-var auth = require('../lib/auth');
-
 app.post('/', function(req, res) {
-    var action = req.body.action;
-    if (action === 'login') {
-        auth.redirectAuthUrl(res);
-    } else if (action === 'logout') {
-        req.session.user = undefined;
-        res.redirect('/');
-    } else {
-        res.status(404);
-    }
+  var action = req.body.action;
+  debug(req.body);
+
+  if (action === 'login') {
+    auth = new Authentication(config.clientId, config.clientSecret, config.redirectUrl);
+    var redirectUrl = auth.getRedirectUrl();
+
+    res.redirect(redirectUrl);
+  } else if (action === 'logout') {
+    req.session.user = undefined;
+
+    res.redirect('/');
+  } else {
+    res.status(400).end();
+  }
 });
 
 module.exports = app;

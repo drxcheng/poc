@@ -1,7 +1,6 @@
 {
-  "name": "auth",
-  "version": "0.0.1",
-  "private": true,
+  "name": "poc",
+  "version": "0.1.0",
   "scripts": {
     "start": "node ./bin/www"
   },

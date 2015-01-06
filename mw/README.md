@@ -15,4 +15,4 @@
 `$ cp config-template.json config.json` and insert your credential
 
 ### run the app
-`$ ./bin/www`
+`$ PORT=8888 DEBUG=poc ./bin/www`
