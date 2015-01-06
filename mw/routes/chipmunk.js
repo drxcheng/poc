@@ -23,13 +23,14 @@ var getUserId = function (req, res) {
   return userId;
 };
 
-var chipmunkWrite = function (res, command) {
+var chipmunkWrite = function (res, command, queueToListen, chipmunkRead) {
   chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
     if (err) {
       console.error(err);
       res.status(500).end();
     } else {
       debug('sent ' + command + ' to ' + REDIS_QUEUE_NAME_SEND);
+      chipmunkRead(res, queueToListen);
     }
   });
 };
@@ -60,8 +61,7 @@ app.get('/', function(req, res) {
 
   debug(command);
 
-  chipmunkWrite(res, command);
-  chipmunkRead(res, queueToListen);
+  chipmunkWrite(res, command, queueToListen, chipmunkRead);
 });
 
 module.exports = app;
