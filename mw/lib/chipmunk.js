@@ -6,6 +6,12 @@ function Chipmunk(host) {
   this.redis = require('redis').createClient(6379, host);
 }
 
+Chipmunk.prototype.generateQueueName = function (method, resource, key) {
+  var queueName = 'poc-' + key + '-' + method + '-' + resource + '-' + Date.now();
+
+  return queueName;
+};
+
 Chipmunk.prototype.generateCommand = function (method, resource, data, queueToListen) {
   var command = JSON.stringify({
     method: method,

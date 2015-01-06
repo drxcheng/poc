@@ -55,7 +55,7 @@ app.get('/', function(req, res) {
   }
 
   var resource      = req.query.resource;
-  var queueToListen = 'poc-' + userId + '-get-' + resource + '-' + Date.now();
+  var queueToListen = chipmunk.generateQueueName('get', resource, userId);
   var command       = chipmunk.generateCommand('GET', resource, userId, queueToListen);
 
   debug(command);

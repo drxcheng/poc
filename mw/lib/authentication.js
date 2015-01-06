@@ -4,17 +4,12 @@
 
 var Oauth2Client = require('googleapis').auth.OAuth2;
 
-var AUTH_OPTION = {
-  access_type: 'offline',
-  scope: ['https://www.googleapis.com/auth/userinfo.email']
-};
-
 function Authentication(clientId, clientSecret, redirectUrl) {
   this.oauth2Client = new Oauth2Client(clientId, clientSecret, redirectUrl);
 }
 
-Authentication.prototype.getRedirectUrl = function () {
-  var url = this.oauth2Client.generateAuthUrl(AUTH_OPTION);
+Authentication.prototype.getRedirectUrl = function (authOption) {
+  var url = this.oauth2Client.generateAuthUrl(authOption);
 
   return url;
 };

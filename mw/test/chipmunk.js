@@ -13,9 +13,21 @@ var chipmunk = new Chipmunk(HOST);
 
 describe('chipmunk', function () {
   describe('generateCommand', function () {
-    it ('should return exact command', function (done) {
+    it ('should return a queue name', function (done) {
+      var queueName       = chipmunk.generateQueueName(METHOD, RESOURCE, DATA);
+      var expect          = 'poc-' + DATA + '-' + METHOD + '-' + RESOURCE + '-';
+      var timestampString = Date.now().toString();
+
+      queueName = queueName.substr(0, queueName.length - timestampString.length);
+      assert.equal(expect, queueName);
+      done();
+    });
+  });
+
+  describe('generateCommand', function () {
+    it ('should return a command', function (done) {
       var command = chipmunk.generateCommand(METHOD, RESOURCE, DATA, RESPONSE);
-      var expect = JSON.stringify({
+      var expect  = JSON.stringify({
         method: METHOD,
         resource: RESOURCE,
         data: DATA,
