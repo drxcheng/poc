@@ -1,11 +1,15 @@
 var express        = require('express');
 var debug          = require('debug')('poc');
-var http           = require('http');
 var google         = require('googleapis')
 var config         = require('../config.json');
 var Authentication = require('../lib/authentication');
+var Chipmunk       = require('../lib/chipmunk');
 
-var app = express();
+var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
+var TIMEOUT = 10;
+
+var app      = express();
+var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
 
 var getGoogleplusUser = function (req, res, tokens) {
   debug(tokens);
@@ -37,7 +41,7 @@ var returnHome = function (req, res, user) {
     req.session.user = user;
     res.redirect('/');
   } else {
-    getUserFromDb(user, function (user) {
+    getUserFromBe(res, user, function (user) {
       if (user) {
         req.session.user = user;
       }
@@ -46,66 +50,65 @@ var returnHome = function (req, res, user) {
   }
 };
 
-var getUserFromDb = function (user, callback) {
-  var options = {
-    host: config.backend,
-    port: 80,
-    path: '?resource=user&googleId=' + user.googleId,
-    method: 'GET'
-  };
+var getUserFromBe = function (res, googlePlusUser, callback) {
+  var resource      = 'user';
+  var data          = {googleId: googlePlusUser.googleId};
+  var queueToListen = chipmunk.generateQueueName('get', resource, googlePlusUser.googleId);
+  var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
 
-  var req = http.get(options, function (res) {
-    switch (res.statusCode) {
-      case 200:
-        res.setEncoding('utf8');
-        res.on('data', function (chunk) {
-          debug('BODY: ' + chunk);
-          var user = JSON.parse(chunk);
+  debug(command);
+
+  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+    if (err) {
+      res.status(err).end();
+    } else {
+      var responseJson = JSON.parse(response);
+      switch (responseJson.code) {
+        case 200:
+          debug('data: ' + JSON.stringify(responseJson.data));
+          var user = responseJson.data;
           callback(user);
-        });
-        break;
-      case 404:
-        insertUserToDb(user, function (user) {
-          debug('ADD user: ' + user);
-          callback(user);
-        });
-        break;
-      default:
-        console.error(res.statusCode);
-        callback();
+          break;
+        case 404:
+          insertUserToDb(googlePlusUser, function (user) {
+            debug('ADD user: ' + user);
+            callback(user);
+          });
+          break;
+        default:
+          console.error(responseJson.message);
+          callback();
+      }
     }
   });
-
-  req.end();
 };
 
 var insertUserToDb = function (user, callback) {
-  debug(user);
+  console.log(user);
+  var resource      = 'user';
+  var data          = JSON.stringify(user);
+  var queueToListen = chipmunk.generateQueueName('post', resource, user.googleId);
+  var command       = chipmunk.generateCommand('POST', resource, data, queueToListen);
 
-  var body = JSON.stringify(user);
+  debug(command);
 
-  var options = {
-    host: config.backend,
-    port: 80,
-    path: '?resource=user',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length
+  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+    if (err) {
+      res.status(err).end();
+    } else {
+      var responseJson = JSON.parse(response);
+      switch (responseJson.code) {
+        case 200:
+          debug('data: ' + JSON.stringify(responseJson.data));
+          var user = responseJson.data;
+          callback(user);
+          break;
+        default:
+          console.error(responseJson.message);
+          callback();
+      }
     }
-  };
-
-  var req = http.request(options, function(res) {
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-      debug('Response: ' + chunk);
-      var user = JSON.parse(chunk);
-      callback(user);
-    });
   });
-
-  req.write(body);
-  req.end();
 };
 
 app.get('/', function(req, res) {

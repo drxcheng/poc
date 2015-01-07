@@ -4,6 +4,17 @@ require_once 'Database.php';
 
 class Item extends Database
 {
+    public function getItem($data)
+    {
+        if (isset($data['id'])) {
+            return $this->getItemById($data['id']);
+        } elseif (isset($data['userId'])) {
+            return $this->getItemsByUserId($data['userId']);
+        } else {
+            return null;
+        }
+    }
+
     public function getItemById($id)
     {
         $query = "

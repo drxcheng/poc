@@ -4,6 +4,17 @@ require_once 'Database.php';
 
 class User extends Database
 {
+    public function getUser($data)
+    {
+        if (isset($data['id'])) {
+            return $this->getUserById($data['id']);
+        } elseif (isset($data['googleId'])) {
+            return $this->getUserByGoogleId($data['googleId']);
+        } else {
+            return null;
+        }
+    }
+
     public function getUserById($id)
     {
         $query = "

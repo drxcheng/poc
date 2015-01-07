@@ -14,7 +14,7 @@ function callMw(resource, preId) {
         if (xmlhttp.readyState == 4 ) {
             if (xmlhttp.status == 200) {
                 var response = JSON.parse(xmlhttp.responseText);
-                document.getElementById(preId).innerHTML = response[1];
+                document.getElementById(preId).innerHTML = JSON.stringify(response.data);
             } else if (xmlhttp.status == 400) {
                 alert('There was an error 400');
             } else {

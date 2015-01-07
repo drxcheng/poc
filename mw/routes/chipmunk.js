@@ -7,7 +7,7 @@ var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
 var TIMEOUT = 10;
 
 var app      = express();
-var chipmunk = new Chipmunk(config.redisHost);
+var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
 
 var getUserId = function (req, res) {
   var userId = req.query.id;
@@ -23,30 +23,6 @@ var getUserId = function (req, res) {
   return userId;
 };
 
-var chipmunkWrite = function (res, command, queueToListen, chipmunkRead) {
-  chipmunk.write(REDIS_QUEUE_NAME_SEND, command, function (err) {
-    if (err) {
-      console.error(err);
-      res.status(500).end();
-    } else {
-      debug('sent ' + command + ' to ' + REDIS_QUEUE_NAME_SEND);
-      chipmunkRead(res, queueToListen);
-    }
-  });
-};
-
-var chipmunkRead = function (res, queueName) {
-  chipmunk.read(queueName, TIMEOUT, function (err, response) {
-    if (err) {
-      console.error(err);
-      res.status(500).end();
-    } else {
-      debug('receive ' + response + ' from ' + queueName);
-      res.send(JSON.stringify(response));
-    }
-  });
-};
-
 app.get('/', function(req, res) {
   var userId = getUserId(req, res);
   if (!userId) {
@@ -55,13 +31,26 @@ app.get('/', function(req, res) {
     return;
   }
 
-  var resource      = req.query.resource;
+  var resource = req.query.resource;
+  var data;
+  if (resource === 'user') {
+    data = {id: userId};
+  } else {
+    data = {userId: userId};
+  }
+
   var queueToListen = chipmunk.generateQueueName('get', resource, userId);
-  var command       = chipmunk.generateCommand('GET', resource, userId, queueToListen);
+  var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
 
   debug(command);
 
-  chipmunkWrite(res, command, queueToListen, chipmunkRead);
+  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+    if (err) {
+      res.status(err).end();
+    } else {
+      res.send(response);
+    }
+  });
 });
 
 module.exports = app;
