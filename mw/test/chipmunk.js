@@ -38,19 +38,12 @@ describe('chipmunk', function () {
     });
   });
 
-  describe('write and read', function () {
-    it ('should not return error', function (done) {
-      chipmunk.write(QUEUE, MESSAGE, function (err) {
+  describe('process', function () {
+    it ('should return the same message', function (done) {
+      chipmunk.process(MESSAGE, QUEUE, QUEUE, function (err, response) {
         assert.ifError(err);
-        done();
-      });
-    });
-
-    it ('should read the correct message', function (done) {
-      chipmunk.read(QUEUE, 10, function (err, response) {
-        assert.ifError(err);
-        assert.equal(QUEUE, response[0]);
-        assert.equal(MESSAGE, response[1]);
+        console.log(response);
+        assert.equal(MESSAGE, response);
         done();
       });
     });

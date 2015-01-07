@@ -6,11 +6,23 @@ var debug = require('debug')('poc');
 
 function Chipmunk(host, timeout) {
   this.redis = require('redis').createClient(6379, host);
-  if (!timeout) {
+  if (timeout) {
     this.timeout = timeout;
   } else {
     this.timeout = 0;
   }
+
+  this.write = function (queueName, message, callback) {
+    this.redis.rpush(queueName, message, function (err) {
+      callback(err);
+    });
+  };
+
+  this.read = function (queueName, timeout, callback) {
+    this.redis.blpop(queueName, timeout, function (err, response) {
+      callback(err, response);
+    });
+  };
 }
 
 Chipmunk.prototype.generateQueueName = function (method, resource, key) {
@@ -28,18 +40,6 @@ Chipmunk.prototype.generateCommand = function (method, resource, data, queueToLi
   });
 
   return command;
-};
-
-Chipmunk.prototype.write = function (queueName, message, callback) {
-  this.redis.rpush(queueName, message, function (err) {
-    callback(err);
-  });
-};
-
-Chipmunk.prototype.read = function (queueName, timeout, callback) {
-  this.redis.blpop(queueName, timeout, function (err, response) {
-    callback(err, response);
-  });
 };
 
 Chipmunk.prototype.process = function (command, queueToSend, queueToListen, callback) {
