@@ -9,8 +9,8 @@ app.get('/', function(req, res) {
   if (user !== undefined) {
     name = user.name;
   }
-
-  res.render('index', {name: name});
+console.log(user);
+  res.render('index', {name: name, id: user._id});
 });
 
 module.exports = app;

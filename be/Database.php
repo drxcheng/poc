@@ -6,11 +6,12 @@ class Database
 
     public function __construct(array $config)
     {
-        $this->db = new \PDO(
-            "mysql:host={$config['host']};dbname={$config['name']}",
-            $config['user'],
-            $config['pass']
-        );
-        $this->db->exec('SET NAMES utf8');
+        try {
+            $m = new MongoClient(); // connect
+            $this->db = $m->selectDB($config['mongodb']['database']);
+        } catch (MongoConnectionException $e) {
+            echo "connecting to MongoDB failed\n";
+            exit();
+        }
     }
 }

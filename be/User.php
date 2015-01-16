@@ -4,75 +4,26 @@ require_once 'Database.php';
 
 class User extends Database
 {
+    private $collection;
+
+    public function __construct($config)
+    {
+        parent::__construct($config);
+
+        $this->collection = $this->db->users;
+    }
+
     public function getUser($data)
     {
         if (isset($data['id'])) {
-            return $this->getUserById($data['id']);
+            $query = ['_id' => new MongoId($data['id'])];
         } elseif (isset($data['googleId'])) {
-            return $this->getUserByGoogleId($data['googleId']);
+            $query = ['googleId' => $data['googleId']];
         } else {
             return null;
         }
-    }
 
-    public function getUserById($id)
-    {
-        $query = "
-            SELECT *
-            FROM `user`
-            WHERE `id` = :id
-        ";
-        $bind = [
-            'id' => $id
-        ];
-        $stmt = $this->db->prepare($query);
-        if (!$stmt->execute($bind)) {
-            $error = $stmt->errorInfo();
-            throw new \PDOException($error[2]);
-        }
-
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (empty($row)) {
-            $user = null;
-        } else {
-            $user = [
-                'id'       => $id,
-                'googleId' => $row['google_id'],
-                'name'     => $row['name']
-            ];
-        }
-
-        return $user;
-    }
-
-    public function getUserByGoogleId($id)
-    {
-        $query = "
-            SELECT *
-            FROM `user`
-            WHERE `google_id` = :id
-        ";
-        $bind = [
-            'id' => $id
-        ];
-        $stmt = $this->db->prepare($query);
-        if (!$stmt->execute($bind)) {
-            $error = $stmt->errorInfo();
-            throw new \PDOException($error[2]);
-        }
-
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (empty($row)) {
-            $user = null;
-        } else {
-            $user = [
-                'id'       => (int) $row['id'],
-                'googleId' => $id,
-                'name'     => $row['name']
-            ];
-        }
+        $user = $this->collection->findOne($query);
 
         return $user;
     }
@@ -83,26 +34,11 @@ class User extends Database
             return null;
         }
 
-        $query = "
-            INSERT INTO `user` (`name`, `google_id`) VALUES (:name, :googleId)
-        ";
-        $bind = [
+        $user = [
             'name'     => $body['name'],
             'googleId' => $body['googleId']
         ];
-        $stmt = $this->db->prepare($query);
-        if (!$stmt->execute($bind)) {
-            $error = $stmt->errorInfo();
-            return null;
-        }
-
-        $id = $this->db->lastInsertId();
-
-        $user = [
-            'id'       => $id,
-            'googleId' => $body['googleId'],
-            'name'     => $body['name']
-        ];
+        $this->collection->insert($user);
 
         return $user;
     }

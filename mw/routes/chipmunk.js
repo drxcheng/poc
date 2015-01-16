@@ -16,7 +16,7 @@ var getUserId = function (req, res) {
     var user = req.session.user;
 
     if (user) {
-      userId = user.id;
+      userId = user._id;
     }
   }
 
@@ -41,6 +41,34 @@ app.get('/', function(req, res) {
 
   var queueToListen = chipmunk.generateQueueName('get', resource, userId);
   var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
+
+  debug(command);
+
+  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+    if (err) {
+      res.status(err).end();
+    } else {
+      res.send(response);
+    }
+  });
+});
+
+app.post('/', function(req, res) {
+  var userId = getUserId(req, res);
+  if (!userId) {
+    console.error('unauthorized');
+    res.status(401).end();
+    return;
+  }
+
+  var resource = req.query.resource;
+  var data = {
+    userId: userId,
+    value: req.body.value
+  };
+
+  var queueToListen = chipmunk.generateQueueName('post', resource, userId);
+  var command       = chipmunk.generateCommand('POST', resource, data, queueToListen);
 
   debug(command);
 

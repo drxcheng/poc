@@ -6,6 +6,7 @@ block content
             input(type="submit", name="action", value="login")
     else
         h1 Welcome, #{name}
+        input#user-id(type="hidden", value="#{id}")
         form(name="logout", action="/auth", method="POST")
             input(type="submit", name="action", value="logout")
 
@@ -14,6 +15,10 @@ block content
         li Call BE - get user
             button#bt-user(onclick='getUser()') submit
             pre#pre-user
+        li Call BE - add item
+            input#value(type="text")
+            button#bt-item(onclick='addItem()') submit
+            pre#pre-item-add
         li Call BE - get item
             button#bt-item(onclick='getItem()') submit
-            pre#pre-item
+            pre#pre-item-get
