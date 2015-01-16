@@ -1,15 +1,15 @@
 var express        = require('express');
 var debug          = require('debug')('poc');
 var google         = require('googleapis')
+var monk           = require('monk');
 var config         = require('../config.json');
 var Authentication = require('../lib/authentication');
-var Chipmunk       = require('../lib/chipmunk');
 
-var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
-var TIMEOUT = 10;
+var MONGODB_HOST = 'localhost/poc';
 
-var app      = express();
-var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
+var app   = express();
+var db    = monk(MONGODB_HOST);
+var users = db.get('users');
 
 var getGoogleplusUser = function (req, res, tokens) {
   debug(tokens);
@@ -22,7 +22,6 @@ var getGoogleplusUser = function (req, res, tokens) {
   }, function(err, people) {
     if (!err) {
       var user = {
-        id: undefined,
         name: people.displayName,
         googleId: people.id
       };
@@ -51,65 +50,31 @@ var returnHome = function (req, res, user) {
 };
 
 var getUserFromBe = function (res, googlePlusUser, callback) {
-  var resource      = 'user';
-  var data          = {googleId: googlePlusUser.googleId};
-  var queueToListen = chipmunk.generateQueueName('get', resource, googlePlusUser.googleId);
-  var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
-
-  debug(command);
-
-  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+  users.findOne({ googleId: googlePlusUser.googleId }, function (err, doc) {
     if (err) {
       res.status(err).end();
     } else {
-      var responseJson = JSON.parse(response);
-      switch (responseJson.code) {
-        case 200:
-          debug('data: ' + JSON.stringify(responseJson.data));
-          var user = responseJson.data;
+      if (doc === null) {
+        insertUserToDb(googlePlusUser, function (user) {
+          debug('ADD user: ' + JSON.stringify(user));
           callback(user);
-          break;
-        case 404:
-          insertUserToDb(googlePlusUser, function (user) {
-            debug('ADD user: ' + user);
-            callback(user);
-          });
-          break;
-        default:
-          console.error(responseJson.message);
-          callback();
+        });
+      } else {
+        callback(doc);
       }
     }
   });
 };
 
 var insertUserToDb = function (user, callback) {
-  console.log(user);
-  var resource      = 'user';
-  var data          = JSON.stringify(user);
-  var queueToListen = chipmunk.generateQueueName('post', resource, user.googleId);
-  var command       = chipmunk.generateCommand('POST', resource, data, queueToListen);
-
-  debug(command);
-
-  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+  users.insert(user, function (err, doc) {
     if (err) {
       res.status(err).end();
     } else {
-      var responseJson = JSON.parse(response);
-      switch (responseJson.code) {
-        case 200:
-          debug('data: ' + JSON.stringify(responseJson.data));
-          var user = responseJson.data;
-          callback(user);
-          break;
-        default:
-          console.error(responseJson.message);
-          callback();
-      }
+      callback(doc);
     }
   });
-};
+}
 
 app.get('/', function(req, res) {
   debug(req.query);
