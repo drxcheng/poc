@@ -1,0 +1,8 @@
+<div ng-show="isAuth">
+  <h1>Welcome, {{name}}</h1>
+  <input id="user-id" type="hidden" value="{{id}}" />
+  <button ng-click="logout()">logout</button>
+</div>
+<div ng-hide="isAuth">
+  <button ng-click="login()">login</button>
+</div>

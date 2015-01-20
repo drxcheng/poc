@@ -2,3 +2,6 @@ npm-debug.log
 node_modules
 config.json
 config.php
+logs/*
+bower_components
+tmp

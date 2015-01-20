@@ -10,6 +10,19 @@ var AUTH_OPTION = {
 
 var app = express();
 
+app.get('/', function(req, res) {
+  var user = req.session.user;
+  var name = undefined;
+  var id   = undefined;
+
+  if (user !== undefined) {
+    name = user.name;
+    id = user._id;
+  }
+
+  res.send({name: name, id: id});
+});
+
 app.post('/', function(req, res) {
   var action = req.body.action;
   debug(req.body);
@@ -18,7 +31,7 @@ app.post('/', function(req, res) {
     auth = new Authentication(config.clientId, config.clientSecret, config.redirectUrl);
     var redirectUrl = auth.getRedirectUrl(AUTH_OPTION);
 
-    res.redirect(redirectUrl);
+    res.send(redirectUrl);
   } else if (action === 'logout') {
     req.session.user = undefined;
 

@@ -18,7 +18,6 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(session({
   secret: 'ThisIsASecret',
@@ -29,10 +28,10 @@ app.use(session({
   })
 }));
 
-app.use('/', require('./routes/index'));
-app.use('/auth', require('./routes/auth'));
-app.use('/oauth', require('./routes/oauth'));
-app.use('/chipmunk', require('./routes/chipmunk'));
+app.use('/', express.static(path.join(__dirname, '../fe/app')));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/oauth', require('./routes/oauth'));
+app.use('/api/chipmunk', require('./routes/chipmunk'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
