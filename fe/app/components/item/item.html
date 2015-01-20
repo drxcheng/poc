@@ -1,0 +1,13 @@
+<div ng-controller="ItemController">
+  <h2>Items</h2>
+  <span>{{items.length}} items</span>
+  <ul>
+    <li ng-repeat="item in items">
+      <span>{{item.value}}</span>
+    </li>
+  </ul>
+  <form ng-submit="addItem()">
+    <input type="text" ng-model="itemValue" placeholder="add new item" />
+    <input type="submit" value="add" />
+  </form>
+</div>

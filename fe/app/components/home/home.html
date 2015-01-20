@@ -2,6 +2,7 @@
   <h1>Welcome, {{name}}</h1>
   <input id="user-id" type="hidden" value="{{id}}" />
   <button ng-click="logout()">logout</button>
+  <ng-include src="'components/item/item.html'"></ng-include>
 </div>
 <div ng-hide="isAuth">
   <button ng-click="login()">login</button>

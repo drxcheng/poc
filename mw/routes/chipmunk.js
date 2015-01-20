@@ -4,7 +4,7 @@ var config   = require('../config.json');
 var Chipmunk = require('../lib/chipmunk');
 
 var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
-var TIMEOUT = 10;
+var TIMEOUT = 2;
 
 var app      = express();
 var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
@@ -46,7 +46,7 @@ app.get('/', function(req, res) {
 
   chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
     if (err) {
-      res.status(err).end();
+      res.status(err).send(response);
     } else {
       res.send(response);
     }

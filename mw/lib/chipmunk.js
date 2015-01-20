@@ -55,6 +55,9 @@ Chipmunk.prototype.process = function (command, queueToSend, queueToListen, call
         if (err) {
           console.error(err);
           callback(500);
+        } else if (message === null) {
+          debug('timout from ' + queueToListen);
+          callback(500, 'timeout');
         } else {
           debug('receive ' + message + ' from ' + queueToListen);
           callback(null, message[1]);

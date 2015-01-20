@@ -1,12 +1,11 @@
 'use strict';
 
 // Declare app level module which depends on views, and components
-angular.module('myApp', [
+angular.module('pocFe', [
   'ngRoute',
-  'myApp.home',
-  'myApp.view2',
-  'myApp.version'
+  'pocFe.home',
+  'pocFe.item'
 ]).
 config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/home'});
+  $routeProvider.otherwise({redirectTo: '/'});
 }]);
