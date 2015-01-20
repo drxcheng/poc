@@ -3,6 +3,9 @@
 angular.module('pocFe.item', [])
 
 .controller('ItemController', ['$scope', '$http', function($scope, $http) {
+  if (!$scope.isAuth) {
+    return;
+  }
 
   $scope.items = [];
 
