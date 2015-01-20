@@ -5,7 +5,8 @@
  */
 class Chipmunk
 {
-    const TIMEOUT = 0;
+    const REQUEST_TIMEOUT = 0;
+    const RESPONSE_TIMEOUT = 2;
 
     private $redis;
 
@@ -17,7 +18,7 @@ class Chipmunk
 
     public function read($queue)
     {
-        $command = $this->redis->blpop($queue, self::TIMEOUT);
+        $command = $this->redis->blpop($queue, self::REQUEST_TIMEOUT);
 
         return $command;
     }
@@ -25,6 +26,7 @@ class Chipmunk
     public function write($queue, $response)
     {
         $this->redis->rpush($queue, $response);
+        $this->redis->expire($queue, self::RESPONSE_TIMEOUT);
 
         return $this;
     }

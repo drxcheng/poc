@@ -13,8 +13,12 @@ function Chipmunk(host, timeout) {
   }
 
   this.write = function (queueName, message, callback) {
-    this.redis.rpush(queueName, message, function (err) {
-      callback(err);
+    var redis = this.redis;
+
+    redis.rpush(queueName, message, function (err) {
+      redis.expire(queueName, timeout, function () {
+        callback(err);
+      });
     });
   };
 
