@@ -5,8 +5,6 @@ require_once 'Chipmunk.php';
 require_once 'Router.php';
 require_once 'Hamster.php';
 
-const REDIS_QUEUE_NAME_LISTEN  = 'poc-mw-to-be';
-
 $chipmunk = new Chipmunk('127.0.0.1');
 $router   = new Router($config);
 $hamster  = new Hamster($chipmunk, $router);

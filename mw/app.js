@@ -6,6 +6,8 @@ var bodyParser     = require('body-parser');
 var cookieParser   = require('cookie-parser');
 var session        = require('express-session');
 var MemcachedStore = require('connect-memcached')(session);
+var Chipmunk       = require('chipmunkjs').Chipmunk;
+var Service        = require('chipmunkjs').Service;
 var config         = require('./config');
 
 var app = express();
@@ -23,6 +25,14 @@ app.use(session({
     hosts: config.memcachedHost + ':11211'
   })
 }));
+
+chipmunk = new Chipmunk();
+
+var service  = new Service('poc');
+
+service.initializeRedis(config.redisHost);
+service.setServiceTimeout(2);
+chipmunk.addService(service);
 
 app.use('/', express.static(path.join(__dirname, '../fe/app')));
 app.use('/api/auth', require('./routes/auth'));

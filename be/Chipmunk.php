@@ -16,15 +16,19 @@ class Chipmunk
         $this->redis->connect($host, 6379);
     }
 
-    public function read($queue)
+    public function consume($queue)
     {
-        $command = $this->redis->blpop($queue, self::REQUEST_TIMEOUT);
+        $message = $this->redis->blpop($queue, self::REQUEST_TIMEOUT);
+        $key = $message[1];
 
-        return $command;
+        $command = $this->redis->get($key);
+
+        return [$command, $key];
     }
 
-    public function write($queue, $response)
+    public function respond($key, $response)
     {
+        $queue = 'chipmunk-res-' . $key;
         $this->redis->rpush($queue, $response);
         $this->redis->expire($queue, self::RESPONSE_TIMEOUT);
 
