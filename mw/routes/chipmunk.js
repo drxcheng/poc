@@ -1,13 +1,9 @@
 var express  = require('express');
 var debug    = require('debug')('poc');
-var config   = require('../config.json');
-var Chipmunk = require('../lib/chipmunk');
 
-var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
-var TIMEOUT = 10;
+var TIMEOUT = 2;
 
-var app      = express();
-var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
+var app = express();
 
 var getUserId = function (req, res) {
   var userId = req.query.id;
@@ -39,14 +35,9 @@ app.get('/', function(req, res) {
     data = {userId: userId};
   }
 
-  var queueToListen = chipmunk.generateQueueName('get', resource, userId);
-  var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
-
-  debug(command);
-
-  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+  chipmunk.send('poc', 'GET', resource, data, function (err, response) {
     if (err) {
-      res.status(err).end();
+      res.status(err).send(response);
     } else {
       res.send(response);
     }

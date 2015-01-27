@@ -2,7 +2,7 @@
 
 class Hamster
 {
-    const QUEUE_TO_LISTEN  = 'poc-mw-to-be';
+    const QUEUE_TO_LISTEN  = 'chipmunk-poc';
 
     private $chipmunk;
 
@@ -17,15 +17,15 @@ class Hamster
     public function run()
     {
         do {
-            $command = $this->chipmunk->read(self::QUEUE_TO_LISTEN);
-            echo "REQ: " . $command[1] . "\n";
+            list($command, $key) = $this->chipmunk->consume(self::QUEUE_TO_LISTEN);
+            echo "REQ: $command, key: $key\n";
 
-            list($method, $resource, $data, $responseQueue) = $this->extractCommand($command[1]);
+            list($method, $resource, $data) = $this->extractCommand($command);
 
             $responseJson = $this->router->getResponse($method, $resource, $data);
             $response     = json_encode($responseJson);
 
-            $this->chipmunk->write($responseQueue, $response);
+            $this->chipmunk->respond($key, $response);
             echo "RES: $response\n";
         } while (true);
     }
@@ -35,16 +35,14 @@ class Hamster
         $command = json_decode($commandline, true);
         if (empty($command)
             || !isset($command['method'])
-            || !isset($command['resource'])
-            || !isset($command['response'])) {
+            || !isset($command['url'])) {
             return null;
         }
 
         return [
             $command['method'],
-            $command['resource'],
-            $command['data'],
-            $command['response']
+            $command['url'],
+            $command['body']
         ];
     }
 }

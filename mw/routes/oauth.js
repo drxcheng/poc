@@ -2,14 +2,9 @@ var express        = require('express');
 var debug          = require('debug')('poc');
 var google         = require('googleapis')
 var config         = require('../config.json');
-var Authentication = require('../lib/authentication');
-var Chipmunk       = require('../lib/chipmunk');
+var Authentication = require('../lib/authentication')
 
-var REDIS_QUEUE_NAME_SEND = 'poc-mw-to-be';
-var TIMEOUT = 10;
-
-var app      = express();
-var chipmunk = new Chipmunk(config.redisHost, TIMEOUT);
+var app = express();
 
 var getGoogleplusUser = function (req, res, tokens) {
   debug(tokens);
@@ -53,12 +48,8 @@ var returnHome = function (req, res, user) {
 var getUserFromBe = function (res, googlePlusUser, callback) {
   var resource      = 'user';
   var data          = {googleId: googlePlusUser.googleId};
-  var queueToListen = chipmunk.generateQueueName('get', resource, googlePlusUser.googleId);
-  var command       = chipmunk.generateCommand('GET', resource, data, queueToListen);
 
-  debug(command);
-
-  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+  chipmunk.send('poc', 'GET', resource, data, function (err, response) {
     if (err) {
       res.status(err).end();
     } else {
@@ -84,15 +75,10 @@ var getUserFromBe = function (res, googlePlusUser, callback) {
 };
 
 var insertUserToDb = function (user, callback) {
-  console.log(user);
   var resource      = 'user';
   var data          = JSON.stringify(user);
-  var queueToListen = chipmunk.generateQueueName('post', resource, user.googleId);
-  var command       = chipmunk.generateCommand('POST', resource, data, queueToListen);
 
-  debug(command);
-
-  chipmunk.process(command, REDIS_QUEUE_NAME_SEND, queueToListen, function (err, response) {
+  chipmunk.send('poc', 'POST', resource, data, function (err, response) {
     if (err) {
       res.status(err).end();
     } else {

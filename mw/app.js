@@ -6,6 +6,8 @@ var bodyParser     = require('body-parser');
 var cookieParser   = require('cookie-parser');
 var session        = require('express-session');
 var MemcachedStore = require('connect-memcached')(session);
+var Chipmunk       = require('chipmunkjs').Chipmunk;
+var Service        = require('chipmunkjs').Service;
 var config         = require('./config');
 
 var app = express();
@@ -29,10 +31,18 @@ app.use(session({
   })
 }));
 
+chipmunk = new Chipmunk();
+
+var service  = new Service('poc');
+
+service.initializeRedis(config.redisHost);
+service.setServiceTimeout(2);
+chipmunk.addService(service);
+
 app.use('/', require('./routes/index'));
-app.use('/auth', require('./routes/auth'));
-app.use('/oauth', require('./routes/oauth'));
-app.use('/chipmunk', require('./routes/chipmunk'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/oauth', require('./routes/oauth'));
+app.use('/api/chipmunk', require('./routes/chipmunk'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

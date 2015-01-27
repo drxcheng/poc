@@ -23,6 +23,6 @@ function callMw(resource, preId) {
         }
     }
 
-    xmlhttp.open('GET', '/chipmunk?resource=' + resource, true);
+    xmlhttp.open('GET', '/api/chipmunk?resource=' + resource, true);
     xmlhttp.send();
 }
