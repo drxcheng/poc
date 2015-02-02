@@ -18,45 +18,58 @@ class Router
     /**
      * @return array
      */
-    public function getResponse($method, $resource, $data)
+    public function getResponse($method, $url, $body)
     {
+        list($resource, $query) = $this->parseUrl($url);
+
         switch ($resource) {
-            case 'user':
-                return $this->getUserResponse($method, $data);
+            case '/api/poc/user':
+                return $this->getUserResponse($method, $query, $body);
                 break;
 
-            case 'item':
-                return $this->getItemResponse($method, $data);
+            case '/api/poc/item':
+                return $this->getItemResponse($method, $query, $body);
                 break;
 
             default:
                 return [
-                    'code' => 400,
-                    'message' => 'invalid resource'
+                    'header' => ['header' => ['code' => 400]],
+                    'body' => 'invalid resource'
                 ];
         }
+    }
+
+    private function parseUrl($url)
+    {
+        $urlParts = parse_url($url);
+        $query = [];
+        if (isset($urlParts['query'])) {
+            parse_str($urlParts['query'], $query);
+        }
+
+        return [$urlParts['path'], $query];
     }
 
     /**
      * @return array
      */
-    public function getUserResponse($method, $data)
+    public function getUserResponse($method, $query, $body)
     {
         $userDataAccess = new User($this->config);
 
         $method = strtolower($method);
         switch ($method) {
             case 'get':
-                $user = $userDataAccess->getUser($data);
+                $user = $userDataAccess->getUser($query);
                 if ($user === null) {
                     $response = [
-                        'code' => 404,
-                        'message' => 'cannot find'
+                        'header' => ['code' => 404],
+                        'body' => 'cannot find'
                     ];
                 } else {
                     $response = [
-                        'code' => 200,
-                        'data' => $user
+                        'header' => ['code' => 200],
+                        'body' => $user
                     ];
                 }
                 break;
@@ -64,20 +77,20 @@ class Router
                 $user = $userDataAccess->postUser(json_decode($data, true));
                 if ($user === null) {
                     $response = [
-                        'code' => 400,
-                        'message' => 'bad request'
+                        'header' => ['code' => 400],
+                        'body' => 'bad request'
                     ];
                 } else {
                     $response = [
-                        'code' => 200,
-                        'data' => $user
+                        'header' => ['code' => 200],
+                        'body' => $user
                     ];
                 }
                 break;
             default:
                 $response = [
-                    'code' => 400,
-                    'message' => 'invalid method'
+                    'header' => ['code' => 400],
+                    'body' => 'invalid method'
                 ];
         }
 
@@ -94,13 +107,13 @@ class Router
                 $item = $itemDataAccess->getItem($data);
                 if ($item === null) {
                     $response = [
-                        'code' => 404,
-                        'message' => 'cannot find'
+                        'header' => ['code' => 404],
+                        'body' => 'cannot find'
                     ];
                 } else {
                     $response = [
-                        'code' => 200,
-                        'data' => $item
+                        'header' => ['code' => 200],
+                        'body' => $item
                     ];
                 }
                 break;
@@ -108,20 +121,20 @@ class Router
                 $item = $itemDataAccess->postItem($data);
                 if ($item === null) {
                     $response = [
-                        'code' => 400,
-                        'message' => 'bad request'
+                        'header' => ['code' => 400],
+                        'body' => 'bad request'
                     ];
                 } else {
                     $response = [
-                        'code' => 200,
-                        'data' => $item
+                        'header' => ['code' => 200],
+                        'body' => $item
                     ];
                 }
                 break;
             default:
                 $response = [
-                    'code' => 400,
-                    'message' => 'invalid method'
+                    'header' => ['code' => 400],
+                    'body' => 'invalid method'
                 ];
         }
 

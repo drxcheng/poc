@@ -1,10 +1,17 @@
 var express        = require('express');
 var debug          = require('debug')('poc');
-var google         = require('googleapis')
+var google         = require('googleapis');
+var mysql          = require('mysql');
 var config         = require('../config.json');
-var Authentication = require('../lib/authentication')
+var Authentication = require('../lib/authentication');
 
 var app = express();
+var connection = mysql.createConnection({
+  host    : '10.30.50.115',
+  user    : 'developer',
+  password: 'noviLove',
+  database: 'playground'
+});
 
 var getGoogleplusUser = function (req, res, tokens) {
   debug(tokens);
@@ -46,54 +53,34 @@ var returnHome = function (req, res, user) {
 };
 
 var getUserFromBe = function (res, googlePlusUser, callback) {
-  var resource      = 'user';
-  var data          = {googleId: googlePlusUser.googleId};
+  var resource = 'user';
+  var sql      = 'SELECT * FROM `user` WHERE `google_id` = ?';
+  var bind     = [googlePlusUser.googleId];
 
-  chipmunk.send('poc', 'GET', resource, data, function (err, response) {
-    if (err) {
-      res.status(err).end();
+  connection.query(sql, bind, function(err, result) {
+    if (err) { throw err; }
+
+    if (result.length === 0) {
+      insertUserToDb(googlePlusUser, function (user) {
+        debug('ADD user: ' + JSON.stringify(user));
+        callback(user);
+      });
     } else {
-      var responseJson = JSON.parse(response);
-      switch (responseJson.code) {
-        case 200:
-          debug('data: ' + JSON.stringify(responseJson.data));
-          var user = responseJson.data;
-          callback(user);
-          break;
-        case 404:
-          insertUserToDb(googlePlusUser, function (user) {
-            debug('ADD user: ' + user);
-            callback(user);
-          });
-          break;
-        default:
-          console.error(responseJson.message);
-          callback();
-      }
+      debug('data: ' + JSON.stringify(result[0]));
+      callback(result[0]);
     }
   });
 };
 
 var insertUserToDb = function (user, callback) {
-  var resource      = 'user';
-  var data          = JSON.stringify(user);
+  var sql  = 'INSERT INTO `user` (`google_id`, `name`) VALUES (?, ?)';
+  var bind = [user.googleId, user.name]
 
-  chipmunk.send('poc', 'POST', resource, data, function (err, response) {
-    if (err) {
-      res.status(err).end();
-    } else {
-      var responseJson = JSON.parse(response);
-      switch (responseJson.code) {
-        case 200:
-          debug('data: ' + JSON.stringify(responseJson.data));
-          var user = responseJson.data;
-          callback(user);
-          break;
-        default:
-          console.error(responseJson.message);
-          callback();
-      }
-    }
+  connection.query(sql, bind, function(err, result) {
+    if (err) { throw err; }
+
+    user.id = result.insertId;
+    callback(user);
   });
 };
 

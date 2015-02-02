@@ -20,9 +20,9 @@ class Hamster
             list($command, $key) = $this->chipmunk->consume(self::QUEUE_TO_LISTEN);
             echo "REQ: $command, key: $key\n";
 
-            list($method, $resource, $data) = $this->extractCommand($command);
+            list($method, $url, $body) = $this->extractCommand($command);
 
-            $responseJson = $this->router->getResponse($method, $resource, $data);
+            $responseJson = $this->router->getResponse($method, $url, $body);
             $response     = json_encode($responseJson);
 
             $this->chipmunk->respond($key, $response);

@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "body-parser": "~1.8.1",
+    "chipmunk": "git+ssh://git@stash.viso.tv:7999/~xcheng/chipmunkjs.git#next",
     "connect-memcached": "^0.1.0",
     "cookie-parser": "^1.3.3",
     "debug": "~2.0.0",
@@ -14,8 +15,8 @@
     "googleapis": "^1.0.21",
     "jade": "~1.6.0",
     "morgan": "~1.3.0",
+    "mysql": "^2.5.4",
     "redis": "^0.12.1",
-    "serve-favicon": "~2.1.3",
-    "chipmunk": "git+ssh://git@github.com:drxcheng/ChipmunkJS.git#master"
+    "serve-favicon": "~2.1.3"
   }
 }
